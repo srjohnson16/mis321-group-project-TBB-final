@@ -5,48 +5,53 @@ using MySql.Data.MySqlClient;
 using System.Collections.Generic;
 
 
-var builder = WebApplication.CreateBuilder(args);
-
-// Add services to the container.
-
-builder.Services.AddControllers();
-builder.Services.AddCors(options =>
+internal class Program
 {
-    options.AddPolicy("OpenPolicy",
-    builder =>
+    private static void Main(string[] args)
     {
-        builder.AllowAnyOrigin()
-               .AllowAnyMethod()
-               .AllowAnyHeader();
-    });
-});
+        var builder = WebApplication.CreateBuilder(args);
 
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+        // Add services to the container.
 
-var app = builder.Build();
+        builder.Services.AddControllers();
+        builder.Services.AddCors(options =>
+        {
+            options.AddPolicy("OpenPolicy",
+            builder =>
+            {
+                builder.AllowAnyOrigin()
+                       .AllowAnyMethod()
+                       .AllowAnyHeader();
+            });
+        });
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
+        // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+        builder.Services.AddEndpointsApiExplorer();
+        builder.Services.AddSwaggerGen();
+
+        var app = builder.Build();
+
+        // Configure the HTTP request pipeline.
+        if (app.Environment.IsDevelopment())
+        {
+            app.UseSwagger();
+            app.UseSwaggerUI();
+        }
+
+        app.UseHttpsRedirection();
+
+        app.UseAuthorization();
+
+        app.UseCors("OpenPolicy");
+
+
+        app.MapControllers();
+
+        app.Run();
+
+
+        BookUtility utility = new BookUtility();
+
+        utility.GetAllBooks();
+    }
 }
-
-app.UseHttpsRedirection();
-
-app.UseAuthorization();
-
-app.UseCors("OpenPolicy");
-
-
-app.MapControllers();
-
-app.Run();
-
-
-BookUtility utility = new BookUtility();
-
-utility.GetAllBooks();
-

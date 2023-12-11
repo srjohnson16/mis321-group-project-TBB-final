@@ -2,36 +2,52 @@ const booksUrl = "http://localhost:5275/api/books"
 
 const ordersUrl = "http://localhost:5275/api/orders"
 
-let myBooks;
+const adminsUrl = "http://localhost:5275/api/admins"
 
+
+let myAdmins;
+
+async function test(){
+    let response = await fetch(adminsUrl);
+    let data = await response.json();
+    myAdmins = data;
+    console.log(myAdmins);  
+}
+
+let myBooks;
 let cart;
 //roach test
 
+//johnson edit move the heading to index.html
 function handleOnLoad() {
+   // test();
     console.log('handle on load called')
     let html=`
-        <div class="p-2 mb-3 bg-body-tertiary rounded-3">
-        <div class="container-fluid py-5">
+
+    <div class="p-2 mb-3 custom-banner rounded-3">
+    <div class="container-fluid py-5 text-center">
         <h1 class="display-5 fw-bold">Tuscaloosa Book Bin</h1>
-        <p class="col-md-8 fs-4">Tuscaloosa's first choice in book purchasing!</p>
+    
         <button onclick="loadMainPage()">Home</button>
-        <button onclick="loadTradeForm()">Trade a Book</button>
         <button onclick="loadCart()">Cart</button>
-        <button onclick="loadAdminLogin()">Admin Login</button>
-        </div>
-        </div>
-        <div id="tablebody"></div>
-    
-    `
-    
+        <button onclick="inputAdminCredentials()">Admin Login</button>
+       
+    </div>
+</div>
+<div id="tablebody"></div>
+ `
+
     document.getElementById('app').innerHTML=html
     loadMainPage()
 }
 
+
+
 function loadMainPage() {
-    let html = `</table>`
+    console.log("In loadMainPage()")
+     let html = `</table>`
     document.getElementById('tablebody').innerHTML = html
-    createBookTable()
+    createBookTable();
 }
 
 async function createBookTable() {
@@ -45,75 +61,67 @@ async function createBookTable() {
         console.error('Error fetching books:', error);
     }
 }
-// Builds the book table header, calls another method to build the rows. Will need to be adjusted for the cards.
-// Below is an example, it makes a two column table with as many rows as there is relevant data.
-// Likely just pull the header building out and change the row building to fill in cards.
-// Shaliyah should have more information on making cards.
-function displayBookTable(myBooks) {
-    let html =`
-    <table class="table table-striped">
-        <tr>
-            <th>Book</th>
-            <th>Price</th>
-            <th></th>
-            <th></th>
-        </tr>`
-    myBooks.forEach(function(book){
-        
-            console.log(book.title + book.deleted);
-            if(book.deleted == false){
-               html += `
-                <tr>
-                    <td>${book.title}</td>
-                    <td>${book.price}</td>
-                    <td><button onclick="displayBookInfo('${book.id}')">More Info on ${book.title}</button></td>
-                    <td><button onclick="loadBuyPage(${book.id})" >Buy this book</button></td>               
-                </tr>` 
-            }
-            
-        
-    })
-    html +=`</table>`
-    document.getElementById('tablebody').innerHTML = html
+
+
+
+// just displays the book V3 Satisfied
+function displayBookTable(myBooks)
+ {
+        // <div class="row row-cols-1 row-cols-md-3 g-4">`;
+    let html = `
+    <div class="sorting-buttons">
+        <button onclick="sortHomePage('author', 'asc')">Sort by Author (Asc)</button>
+        <button onclick="sortHomePage('author', 'desc')">Sort by Author (Desc)</button>
+    
+        <button onclick="sortHomePage('price', 'asc')">Sort by Price (Asc)</button>
+        <button onclick="sortHomePage('price', 'desc')">Sort by Price (Desc)</button>
+    
+        <button onclick="sortHomePage('title', 'asc')">Sort by Title (Asc)</button>
+        <button onclick="sortHomePage('title', 'desc')">Sort by Title (Desc)</button>
+    
+     </div>
+
+    <div class="row row-cols-1 row-cols-md-4 g-4 bookshelf">`;
+
+    let empty = true;
+
+
+    myBooks.forEach(function (book) {
+        console.log(book.title + book.deleted);
+        if (book.deleted == false) {
+            empty = false;
+            html += `
+            <div class="col">
+                <div class="card my-card">
+                 
+                    <div class="card-body">
+                        <h5 class="card-title">${book.title}</h5>
+                        <p class="card-text">${book.author}</p>
+                      
+                        <p class="card-text">Price: $${book.price}</p>
+                        <button onclick="displayBookInfo('${book.id}')" class="btn btn-primary">View Book</button>
+                        <button onclick="loadBuyPage(${book.id})" class="btn btn-success">Buy</button>
+                    </div>
+                </div>
+            </div>`;
+        }
+    });
+
+    if (empty == true) {
+        html += `
+            <div class="col">
+                <div class="card my-card">
+                    <div class="card-body">
+                        <p class="card-text">Sold Out!</p>
+                    </div>
+                </div>
+            </div>`;
+    }
+
+    html += `</div>`;
+    document.getElementById('tablebody').innerHTML = html;
 }
 
-// passes in the book's url as "bookInfo" to draw from in the following page building.
-
-
-//Builds a page based off of the information given to it about the specific book that was selected.
-// async function displayBookInfo(bookid) {
-//     console.log(bookid);
-//     let response = await fetch(booksUrl+"/"+bookid);
-//     let data = await response.json();
-//     console.log(data);
-//     let html =`
-//     <table class="table table-striped">
-
-//         <tr>
-//             <th>Title</th>
-//             <th>Author</th>
-//             <th>Page Count</th>
-//             <th>Genre</th>
-//             <th>Book Type</th>
-//             <th>Condition</th>
-//             <th>Price</th>
-//         </tr>
-//         <tr>
-
-//             <td>${data.title}</td>
-//             <td>${data.author}</td>
-//             <td>${data.pageCount}</td>
-//             <td>${data.genre}</td>
-//             <td>${data.bookType}</td>
-//             <td>${data.condition}</td>
-//             <td>${data.price}</td>
-//         </tr>
-//         <button onclick="loadBuyPage(${data.id})">Buy This Book</button>
-//         <button onclick="handleOnLoad()">Back to Home Page</button>
-//         `
-//     html +=`</table>`
-//     document.getElementById('tablebody').innerHTML = html
-// }
 
 async function displayBookInfo(bookid) {
     try {
@@ -122,6 +130,7 @@ async function displayBookInfo(bookid) {
         let data = await response.json();
         console.log(data);
         let html = `
+        
             <table class="table table-striped">
                 <tr>
                     <th>Title</th>
@@ -130,7 +139,7 @@ async function displayBookInfo(bookid) {
                     <th>Genre</th>
                     <th>Book Type</th>
                     <th>Condition</th>
-                    <th>Price</th>
+                    <th>Price</th>      
                 </tr>
                 <tr>
                     <td>${data.title}</td>
@@ -140,6 +149,7 @@ async function displayBookInfo(bookid) {
                     <td>${data.bookType}</td>
                     <td>${data.condition}</td>
                     <td>${data.price}</td>
+
                 </tr>
             </table>
             <button onclick="loadBuyPage(${data.id})">Buy This Book</button>
@@ -214,7 +224,7 @@ async function handleOrderAdd(bookid){
     let currentDate = new Date();
     
     let options = { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric', hour12: false };
-    let order = {custEmail: customerEmail, shippingAddress: shippingAddress, orderDate: currentDate.toLocaleDateString(undefined, options), bookID: bookid, bookPrice: data.price, bookTitle: data.title, completionDate: "No", completed: false}
+    let order = {custEmail: customerEmail, shippingAddress: shippingAddress, orderDate: currentDate.toLocaleDateString(undefined, options), bookID: bookid, bookPrice: data.price, bookTitle: data.title, completionDate: "Not completed", completed: false}
 
     console.log(order)
     await fetch(ordersUrl, {
@@ -226,6 +236,8 @@ async function handleOrderAdd(bookid){
     })
     addToCart(order);
 }
+
+
 
 async function buyNow(bookid){
     console.log(bookid)
@@ -262,6 +274,7 @@ async function buyNow(bookid){
     
 }
 
+
 function addToCart(order){
     handleBookSell(order.bookID);
     let html = `
@@ -272,6 +285,8 @@ function addToCart(order){
     `
     document.getElementById('tablebody').innerHTML = html
 }
+
+
 
 async function finishBuyNow(orderid) {
     try {
@@ -289,6 +304,7 @@ async function finishBuyNow(orderid) {
         console.error('Error in finishBuyNow:', error);
     }
 }
+
 async function handleBookSell(index)
 {
     
@@ -314,6 +330,8 @@ async function loadCart() {
         console.error('Error fetching cart details:', error);
     }
 }
+
+
 async function checkCartOwner(myOrders){
     console.log(myOrders)
     let html = `<form onsubmit="return false" class="mt-4">
@@ -322,11 +340,7 @@ async function checkCartOwner(myOrders){
         <input type="text" id="cartEmail" name="cartEmail" class="form-control">
         </div>
 
-        <div class="mb-3">
-        <label for="cartShippingAddress" class="form-label">Please enter shipping address of order(s) below:</label>
-        <input type="text" id="cartShippingAddress" name="cartShippingAddress" class="form-control">
-        </div>
-        
+       
         <button onclick="displayOrdersTable()" >View account cart</button>
         <button onclick="handleOnLoad()">Back to Home Page</button>
         </form>`
@@ -335,102 +349,94 @@ async function checkCartOwner(myOrders){
 
 }
 
-async function displayOrdersTable() {
-    let response = await fetch(ordersUrl);
-        let data = await response.json();
-        let myOrders = data;
-        console.log(data);
-    let customerEmail = document.getElementById('cartEmail').value;
-    let shippingAddress = document.getElementById('cartShippingAddress').value;
-    let html =`
-    <button onclick="buyAll('${customerEmail}', '${shippingAddress}')">Checkout entire cart</button>
-    <table class="table table-striped">
-        <tr>
-            <th>Account: ${customerEmail}<th>
-        </tr>
-        <tr>
-            <th>Book</th>
-            <th>Price</th>
-            <th>Order Date</th>
-            <th>Shipping Address</th>
-            <th></th>
 
-        </tr>`
-    myOrders.forEach(function(order){
-        
-            console.log(order.custEmail + order.shippingAddress + order.bookTitle);
-            console.log('Order:', order);
-            console.log('Conditions:', order.completed, order.custEmail, customerEmail, order.shippingAddress, shippingAddress);
-            if (!order.completed && order.custEmail.trim() === customerEmail.trim() && order.shippingAddress.trim() === shippingAddress.trim()) {
-               html += `
+async function displayOrdersTable() {
+    let customerEmail = document.getElementById('cartEmail').value;
+    
+    try {
+        let response = await fetch(ordersUrl);
+        let data = await response.json();
+        let myOrders = data.filter(order => !order.completed && order.custEmail.trim() === customerEmail.trim());
+        console.log(myOrders);
+        let total = calculateTotalPrice(myOrders);
+        let html = `
+            <button onclick="buyAll('${customerEmail}')">Checkout entire cart</button>
+            <table class="table table-striped">
+                <tr>
+                    <th>Account: ${customerEmail}</th>
+                </tr>
+                <tr>
+                    <th>Book</th>
+                    <th>Price</th>
+                    <th>Order Date</th>
+                    <th>Shipping Address</th>
+                    <th></th>
+                </tr>`;
+
+        myOrders.forEach(order => {
+            html += `
                 <tr>
                     <td>${order.bookTitle}</td>
                     <td>${order.bookPrice}</td>
                     <td>${order.orderDate}</td>
                     <td>${order.shippingAddress}</td>
-                    <td><button onclick="buyBook(${order.id})" >Checkout</button></td>
+                    <td><button onclick="buyBook(${order.id})">Checkout</button></td>
+                </tr>`;
+        });
 
-                </tr>` 
-            }
-            
-        
-    })
-    html +=`</table>`
-    document.getElementById('tablebody').innerHTML = html
-}
+        html += `</table>
+            <div>Total Price: ${total}</div>
+            <form onsubmit="return false" class="mt-4">
+                <div class="mb-3">
+                    <label for="paymentInfo" class="form-label">Please enter payment information:</label>
+                    <input type="text" id="paymentInfo" name="paymentInfo" class="form-control">
+                </div>
+                <button onclick="BookPurchases(${JSON.stringify(myOrders)})">Continue</button>
+            </form>`;
 
-async function buyAll(customerEmail, shippingAddress){
-    let sum = 0;
-    let boughtOrders = [];
-    let response = await fetch(ordersUrl);
-        let data = await response.json();
-        let myOrders = data;
-        console.log(data);
-        let html = `
-        <table class="table table-striped">
-        <tr>
-            <th>Account: ${customerEmail}<th>
-        </tr>
-        
-        `
-        myOrders.forEach(function(order){
-        
-            
-            if (!order.completed && order.custEmail.trim() === customerEmail.trim() && order.shippingAddress.trim() === shippingAddress.trim()) {
-              
-                console.log(order.bookTitle +customerEmail + shippingAddress);
-                html += `
-                <tr>
-                    <td>${order.bookTitle}</td>
-                    <td>${order.bookPrice}</td>
-                </tr>` 
-                let currentDate = new Date();
-    
-                let options = { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric', hour12: false };
-
-                order.completionDate = currentDate.toLocaleDateString(undefined, options)
-                order.completed = true;
-                boughtOrders.push(order);
-                sum += order.bookPrice;
-            }
-            
-        })
-        console.log(boughtOrders);
-        html+= `
-        <tr>
-            <th>Sum of book prices: ${sum}<th>
-        </tr>
-        <form onsubmit="return false" class="mt-4">
-        <div class="mb-3">
-        <label for="paymentInfo" class="form-label">Please enter payment information:</label>
-        <input type="text" id="paymentInfo" name="paymentInfo" class="form-control">
-        </div>
-        <button onclick="BookPurchases(${JSON.stringify(boughtOrders)})">Continue</button>
-        </form>
-        `;
         document.getElementById('tablebody').innerHTML = html;
+    } catch (error) {
+        console.error('Error fetching cart details:', error);
+    }
 }
 
+
+async function buyAll(customerEmail) {
+    try {
+        let response = await fetch(ordersUrl);
+        let data = await response.json();
+        let myOrders = data.filter(order => !order.completed && order.custEmail.trim() === customerEmail.trim());
+
+        for (const order of myOrders) {
+            await handleOrderCompletion(order.id);
+        }
+
+        let total = calculateTotalPrice(myOrders);
+
+        let currentDate = new Date();
+        let options = { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric', hour12: false };
+
+        let html = '';
+        myOrders.forEach(order => {
+            order.completionDate = currentDate.toLocaleDateString(undefined, options);
+            order.completed = true;
+            if(order.shippingAddress != "In-Store"){
+                html += `<div class="alert alert-success"><strong>${order.bookTitle} successfully purchased and shipped to ${order.shippingAddress}!</strong></div>`;
+            }
+            else{
+                html += `<div class="alert alert-success"><strong>${order.bookTitle} successfully purchased in store by ${order.custEmail}!</strong></div>`;
+
+            }
+        });
+
+        html += `<div>Total Price: ${total}</div>
+            <button onclick="handleOnLoad()">Back to Home Page</button>`;
+
+        document.getElementById('tablebody').innerHTML = html;
+    } catch (error) {
+        console.error('Error in buyAll:', error);
+    }
+}
 async function BookPurchases(orderstring) {
      
     let orders = JSON.parse(orderstring);
@@ -493,11 +499,15 @@ async function BookPurchase(orderid){
         console.log(data);
         
         console.log("Completion Status: " + data.completed)
-    
-    let html = `
-    <div class="alert alert-success">
-    <strong>${data.bookTitle} successfully purchased and shipped to ${data.shippingAddress}!</strong> 
-    </div>
+        let html = ' ';
+        if(data.shippingAddress != "In-Store"){
+             html += `<div class="alert alert-success"><strong>${data.bookTitle} successfully purchased and shipped to ${data.shippingAddress}!</strong></div>`;
+        }
+        else{
+             html += `<div class="alert alert-success"><strong>${data.bookTitle} successfully purchased in store by ${data.custEmail}!</strong></div>`;
+
+        }
+    html+=`
     <button onclick="handleOnLoad()">Back to Home Page</button>
     `
     document.getElementById('tablebody').innerHTML = html
@@ -535,195 +545,836 @@ async function handleOrderCompletion(index)
     
 }
 
-function loadAdminLogin() {
-    let html =`
-        <form action="/action_page.php">
-        <div class="form-group">
-        <label for="email">Email address:</label>
-        <input type="email" class="form-control" id="email">
+function calculateTotalPrice(orders) {
+    return orders.reduce((sum, order) => sum + order.bookPrice, 0);
+}
+
+
+//! ADMIN SECURITY
+function inputAdminCredentials() {
+    let html = `<form onsubmit="return false" class="mt-4">
+        <div class="mb-3">
+            <label for="adminId" class="form-label">Please enter admin id:</label>
+            <input type="text" id="adminId" name="adminId" class="form-control">
+
+            <label for="adminUserName" class="form-label">Please enter admin username:</label>
+            <input type="text" id="adminUserName" name="adminUserName" class="form-control">
+
+            <label for="adminPassword" class="form-label">Please enter password:</label>
+            <input type="text" id="adminPassword" name="adminPassword" class="form-control">
         </div>
-        <div class="form-group">
-        <label for="pwd">Password:</label>
-        <input type="password" class="form-control" id="pwd">
-        </div>
-        <div class="checkbox">
-        <label><input type="checkbox"> Remember me</label>
-        </div>
-        <button type="submit" class="btn btn-default">Submit</button>
-    </form>`
-    html +=`</table>`
-    document.getElementById('tablebody').innerHTML = html
-    // Checking for correct credentials, probably a better/correct way to do this though.
-    if (aname=="CorrectName" && pword=="CorrectPassword") {
-        loadAdminPortal()
+
+        <button onclick="checkAdminCredentials()">Enter admin portal</button>
+    </form>`;
+
+    document.getElementById('tablebody').innerHTML = html;
+}
+
+async function checkAdminCredentials() {
+    let adminUserName = document.getElementById('adminUserName').value;
+    let adminPassword = document.getElementById('adminPassword').value;
+    let adminId = document.getElementById('adminId').value;
+
+    let response = await fetch(adminsUrl);
+    let data = await response.json();
+    let myAdmins = data.filter(admin => admin.username.trim() === adminUserName.trim() && admin.password.trim() === adminPassword.trim());
+
+    if (myAdmins.length === 0) {
+        console.log("Admin username does not exist");
+    } else {
+        loadAdminPortal();
     }
 }
 
-function loadAdminPortal() {
-    let html =`
-    <button onclick="loadTransactionHistory()">Transaction History</button>
-    <button onclick="loadReportsPage()">Reports</button>
-    <button onclick="loadBookInventory()">Inventory</button>
-    <button onclick="loadMainPage()">Home</button>`
-    html +=`</table>`
-    document.getElementById('tablebody').innerHTML = html
+
+
+function loadTransactions() {
+    console.log('In loadTransactions()');
+    //!ADD A LIST OF ALL INVENTORY ON HAND IN THE BOOKS TABLE
+    //routes back to homepage
+    let html =`<button onclick="loadAdminPortal()">Return to Admin Portal</button>`
+    // html +=`</table>`
+    document.getElementById('tablebody').innerHTML = html;
+   createTransactionTable();
 }
 
-function loadTransactionHistory() {
-    createTransactionTable()
-    let html =`
-    <button onclick="loadAdminPortal()">Return to Admin Portal</button>`
-    html +=`</table>`
-    document.getElementById('tablebody').innerHTML = html
-}
-
+//fetchs the book data
 function createTransactionTable() {
-    // API link will have to be updated to our actual API link
-    const url = 'API link placeholder'
-    fetch(url).then(function(response){
-        console.log(response)
-        return response.json()
-    }).then(function(json){
-        console.log(json)
-        // display the table
-        displayTransactionTable(json.results)
-    })
-    .catch(function(error) {
-        console.error('Error fetching data:', error)
-    })
+    console.log('createTransactionTable');
+
+    fetch(ordersUrl)
+        .then(function (response) {
+            console.log(response);
+            return response.json();
+        })
+        .then(function (json) {
+            console.log(json);
+
+            // Sort the array by order date YOU COULD ADD BUTTONS HERE!
+            json.sort((a, b) => new Date(b.orderDate) - new Date(a.orderDate));
+
+
+            // Display the table
+            displayTransactionHistory(json);
+        })
+        .catch(function (error) {
+            console.error('Error fetching data:', error);
+        });
 }
 
-function displayTransactionTable(transactionData) {
+function sortTable(order) {
+    fetch(ordersUrl)
+        .then(function (response) {
+            return response.json();
+        })
+        .then(function (json) {
+            // Sort the array based on the specified column and order
+            if (order === 'odasc') {
+                json.sort((a, b) => new Date(a.orderDate) - new Date(b.orderDate));
+            } else if (order == 'oddesc'){
+                json.sort((a, b) => new Date(b.orderDate) - new Date(a.orderDate));
+            } else if (order == 'cdasc'){
+                json.sort((a, b) => new Date(a.completionDate) - new Date(b.completionDate));
+            } else if (order == 'cddesc'){
+                json.sort((a, b) => new Date(b.completionDate) - new Date(a.completionDate));
+            } else if (order === 'priceasc') {
+                json.sort((a, b) => a.bookPrice - b.bookPrice);
+            } else if (order === 'pricedesc') {
+                json.sort((a, b) => b.bookPrice - a.bookPrice);
+            }
+            // Display the table
+            displayTransactionHistory(json);
+        })
+        .catch(function (error) {
+            console.error('Error fetching data:', error);
+        });
+}
+
+
+function sortTable(column, order) {
+    console.log("sortTable(column, order)")
+   
+    fetch(booksUrl)
+        .then(response => response.json())
+        .then(json => {
+            const sortedBooks = json.sort((a, b) => {
+                if (order === 'asc') {
+                    return a[column] - b[column];
+                } else {
+                    return b[column] - a[column];
+                }
+            });
+
+            displayInvTable(sortedBooks);
+        })
+        .catch(error => {
+            console.error('Error fetching data:', error);
+        });
+}
+
+
+function sortTable(order) {
+    fetch(ordersUrl)
+        .then(function (response) {
+            return response.json();
+        })
+        .then(function (json) {
+            // Sort the array based on the specified column and order
+            if (order === 'odasc') {
+                json.sort((a, b) => new Date(a.orderDate) - new Date(b.orderDate));
+            } else if (order == 'oddesc'){
+                json.sort((a, b) => new Date(b.orderDate) - new Date(a.orderDate));
+            } else if (order == 'cdasc'){
+                json.sort((a, b) => new Date(a.completionDate) - new Date(b.completionDate));
+            } else if (order == 'cddesc'){
+                json.sort((a, b) => new Date(b.completionDate) - new Date(a.completionDate));
+            } else if (order === 'priceasc') {
+                json.sort((a, b) => a.bookPrice - b.bookPrice);
+            } else if (order === 'pricedesc') {
+                json.sort((a, b) => b.bookPrice - a.bookPrice);
+            }
+            // Display the table
+            displayTransactionHistory(json);
+        })
+        .catch(function (error) {
+            console.error('Error fetching data:', error);
+        });
+}
+function displayTransactionHistory(orderData) {
+
+    console.log('In displayTransactionHistory'); //!error checking
+
+    if (!orderData || !Array.isArray(orderData)) {
+       
+        console.error('Invalid or missing data for transaction history');
+        return;
+    }
+
+
     let html =`
     <table class="table table-striped">
-        <tr>
-            <th>Book Purchased or Traded</th>
-            <th>Amount Paid</th>
-            <th>Date of Transaction</th>
-            <th>In-Store or Online</th>
-        </tr>`
-    transactionData.forEach(function(transaction){
+    <div 
+   
+    <tr>
+        <th>ID</th>
+        <th>Customer email</th>
+        <th>Book ID</th>
+        <th>Revenue</th>
+        <th>Book Title</th>
+        <th>Order Date</th>
+        <th>Completed</th>
+        <th>Completion Date</th>
+    </tr>       
+    </div> `
+    var countOfUncompleted = 0
+    var countOfCompleted = 0
+    var count = 0;
+    var priceSum = 0;
+    
+    orderData.forEach(function(order){
+        if(order.completed == false){
+            countOfUncompleted++;
+        }
+        if(order.completed == true){
+            countOfCompleted++;
+            priceSum += order.bookPrice
+        }
+        count++
+        
         html += `
         <tr>
-            <td>${transaction.book}</td>
-            <td>${transaction.paid}</td>
-            <td>${transaction.date}</td>
-            <td>${transaction.type}</td>
+            <td>${order.id}</td>
+            <td>${order.custEmail}</td>
+            <td>${order.bookID}</td>
+            <td>${new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }).format(order.bookPrice)}</td>
+            <td>${order.bookTitle}</td>
+            <td>${order.orderDate}</td>
+            <td>${order.completed}</td>
+            <td>${order.completionDate}</td>
+            
+            
         </tr>`
     })
-    html +=`</table>`
+    var avg = priceSum/countOfCompleted
+  
+    html +=`
+    
+
+
+  <div class="alert alert-secondary" role="alert">
+     Total Number of Orders: ${count}
+  </div>
+  <div class="alert alert-secondary" role="alert">
+     Total Number of Pending Orders: ${countOfUncompleted}
+    </div>
+   
+
+    <div class="alert alert-secondary" role="alert">
+    Average order revenue: ${new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }).format(avg)}
+  </div>
+  <div class="alert alert-secondary" role="alert">
+    Total revenue: ${new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }).format(priceSum)}
+  </div>
+
+  <div class="alert alert-secondary" role="alert">
+  <button type="button"  onclick="inStoreTransaction()">Record in-store transaction</button>
+    </div>
+
+   
+  <div class="alert alert-secondary" role="alert">
+  <button onclick="loadAdminPortal()">Return to Admin Portal</button>
+    </div>
+
+  <div >
+  <button type="button"  onclick="sortTable('odasc')">Sort by Order Date (Asc)</button>
+  <button type="button" onclick="sortTable('oddesc')">Sort by Order Date (Desc)</button>
+  <button type="button"  onclick="sortTable('cdasc')">Sort by Completion Date (Asc)</button>
+  <button type="button" onclick="sortTable('cddesc')">Sort by Completion Date (Desc)</button>
+  <button type="button"  onclick="sortTable('priceasc')">Sort by Revenue (Asc)</button>
+  <button type="button" onclick="sortTable('pricedesc')">Sort by Revenue (Desc)</button>
+  
+</div>
+`
+
     document.getElementById('tablebody').innerHTML = html
 }
 
-function loadReportsPage() {
-    let html =`
-    <button onclick="loadAdminPortal()">Return to Admin Portal</button>`
-    html +=`</table>`
+
+async function createInStoreOrder(bookid){
+    let response = await fetch(booksUrl+"/"+bookid);
+    let data = await response.json();
+    console.log(data);
+    let currentDate = new Date();
+
+    let html = `
+        <form onsubmit="return false" class="mt-4">
+            <div class="mb-3">
+            <label for="customerEmail" class="form-label">Please enter customer email below:</label>
+            <input type="text" id="customerEmail" name="customerEmail" class="form-control">
+            </div>
+            
+            
+            <button onclick="buyInStore(${data.id})" >Buy now</button>
+            </form>
+    
+    `
+
     document.getElementById('tablebody').innerHTML = html
+
+
 }
 
-function loadBookInventory() {
-    let html =`
-    <button onclick="loadAdminPortal()">Return to Admin Portal</button>`
-    html +=`</table>`
-    document.getElementById('tablebody').innerHTML = html
-    createInvTable()
-}
+async function buyInStore(bookid){
+    console.log(bookid)
+    let customerEmail = document.getElementById('customerEmail').value;
+    
+    let response = await fetch(booksUrl+"/"+bookid);
+    let data = await response.json();
+    console.log(data + "is being bought in store");
+    let currentDate = new Date();
+    
+    let options = { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric', hour12: false };
+    let newOrder = {custEmail: customerEmail, shippingAddress: 'In-Store', orderDate: currentDate.toLocaleDateString(undefined, options), bookID: bookid, bookPrice: data.price, bookTitle: data.title, completionDate: currentDate.toLocaleDateString(undefined, options), completed: true}
 
-function createInvTable() {
-    // API link will have to be updated to our actual API link
-    const url = 'API link placeholder'
-    fetch(url).then(function(response){
-        console.log(response)
-        return response.json()
-    }).then(function(json){
-        console.log(json)
-        // display the table
-        displayInvTable(json.results)
+    console.log(newOrder)
+    await fetch(ordersUrl, {
+        method:"POST",
+        body: JSON.stringify(newOrder),
+        headers: {
+            "Content-type": "application/json; charset=UTF-8"
+        }
     })
-    .catch(function(error) {
-        console.error('Error fetching data:', error)
-    })
+    let response2 = await fetch(ordersUrl);
+    let data2 = await response2.json();
+    console.log(data2)
+    data2.forEach(function(order){
+        
+        console.log(order.id + order.completed);
+        if(newOrder.bookID == order.bookID){
+           finishBuyNow(order.id);
+        }
+        
+    
+})}
+
+async function loadTradeForm() {
+    try {
+        let response = await fetch(booksUrl);
+        let data = await response.json();
+        myBooks = data;
+        console.log(data);
+        checkBookInfo(myBooks);
+    } catch (error) {
+        console.error('Error fetching cart details:', error);
+    }
+}
+async function checkBookInfo(myBooks){
+    console.log(myBooks)
+    let html = `<form onsubmit="return false" class="mt-4">
+        <div class="mb-3">
+        <label for="pageCount" class="form-label">Please enter page count:</label>
+        <input type="text" id="pageCount" name="pageCount" class="form-control">
+
+        <label for="bookType" class="form-label">Please enter book type (Hardcover, Paperback, Audio):</label>
+        <input type="text" id="bookType" name="bookType" class="form-control">
+
+        <label for="bookCondition" class="form-label">Please enter book condition (New or Used):</label>
+        <input type="text" id="bookCondition" name="bookCondition" class="form-control">
+        </div>
+
+       
+        <button onclick="checkTradeMatches()" >View available trades</button>
+        <button onclick="handleOnLoad()">Back to Home Page</button>
+        </form>`
+
+        document.getElementById('tablebody').innerHTML = html
+
+}
+let tradePageCount;
+let tradeBookType;
+let tradeBookCondition;
+
+async function checkTradeMatches(){
+     tradePageCount = document.getElementById('pageCount').value;
+     tradeBookType = document.getElementById('bookType').value;
+     tradeBookCondition = document.getElementById('bookCondition').value;
+
+    let response = await fetch(booksUrl);
+    let data = await response.json();
+    let matchedBooks = data.filter(book =>  book.deleted == false &&
+                                            book.pageCount >= tradePageCount - 50 &&
+                                            book.pageCount <= tradePageCount + 50 &&
+                                            book.bookType.trim().toLowerCase() === tradeBookType.trim().toLowerCase() &&
+                                            book.condition.trim().toLowerCase() === tradeBookCondition.trim().toLowerCase());
+
+    if (matchedBooks.length === 0) {
+        console.log("No eligible trades");
+    } else {
+        displayEligibleTradeIns(matchedBooks);
+    }
 }
 
-function displayInvTable(bookData) {
+function displayEligibleTradeIns(bookData) {
+
+    console.log('In displayInvTable'); //!error checking
+
+    if (!bookData || !Array.isArray(bookData)) {
+        // Handle the case where bookData is undefined or not an array
+        console.error('Invalid or missing data for book inventory');
+        return;
+    }
+
+
     let html =`
     <table class="table table-striped">
-        <tr>
-            <th>Title</th>
-            <th>Author</th>
-            <th>Page Count</th>
-            <th>Price</th>
-        </tr>`
+    <div 
+   
+    <tr>
+        <th>ID</th>
+        <th>Title</th>
+        <th>Author</th>
+        <th>Page Count</th>
+        <th>Type</th>
+        <th>Genre</th>
+        <th>Price</th>
+        <th>Condition</th>
+        <th scope="col">Trade-In</th>
+        
+    </tr>       
+    </div> `
     var count = 0
     bookData.forEach(function(book){
-        count++
+        if(book.deleted == false){
+          count++
         html += `
         <tr>
+            <td>${book.id}</td>
             <td>${book.title}</td>
             <td>${book.author}</td>
             <td>${book.pageCount}</td>
+            <td>${book.bookType}</td>
+            <td>${book.genre}</td>
             <td>${book.price}</td>
-        </tr>`
-    })
-    html +=`</table>
-    'Total Number of Books in Inventory: ${count}'`
+            <td>${book.condition}</td>
+            `
+        if (book.deleted == false){
+            html+=  `
+            <td><button type="button" class="btn active" data-bs-toggle="button" onclick="createTradeIn(${book.id})">Trade for Book #${book.id}</button></td>
+            `
+        }}
+        
+            
+          
+    })   
+
     document.getElementById('tablebody').innerHTML = html
 }
+let tradeTitle;
+let tradeAuthor;
+let tradeGenre;
+async function createTradeIn(bookid){
+    console.log(bookid)
+    
+    
+    
+    console.log(tradePageCount)
+    console.log(tradeBookCondition)
+    console.log(tradeBookType)
+
+    let html = `<form onsubmit="return false" class="mt-4">
+        <div class="mb-3">
+        <label for="tradeTitle" class="form-label">Please enter trade-in title:</label>
+        <input type="text" id="tradeTitle" name="tradeTitle" class="form-control">
+
+        <label for="tradeAuthor" class="form-label">Please enter trade-in author:</label>
+        <input type="text" id="tradeAuthor" name="tradeAuthor" class="form-control">
+
+        <label for="tradeGenre" class="form-label">Please enter trade-in genre:</label>
+        <input type="text" id="tradeGenre" name="tradeGenre" class="form-control">
+        </div>
+
+       
+        <button onclick="switchBooks(${bookid})" >Continue with trade-in</button>
+        <button onclick="handleOnLoad()">Back to Home Page</button>
+        </form>`
+
+        document.getElementById('tablebody').innerHTML = html
 
 
-
-function boughtBook() {
-    //function for unlisting book
-    //returning to home page
-    handleOnLoad()
+    // await fetch(booksUrl, {
+    //     method:"POST",
+    //     body: JSON.stringify(newOrder),
+    //     headers: {
+    //         "Content-type": "application/json; charset=UTF-8"
+    //     }
+    // })
+    // let response2 = await fetch(ordersUrl);
+    // let data2 = await response2.json();
+    // console.log(data2)
+    // data2.forEach(function(order){
+        
+    //     console.log(order.id + order.completed);
+    //     if(newOrder.bookID == order.bookID){
+    //        finishBuyNow(order.id);
+    //     }
+        
+    
 }
 
-function loadTradeForm() {
+    
+async function switchBooks(bookid){
+    let response = await fetch(booksUrl+"/"+bookid);
+            let data = await response.json();
+            console.log(data);
+    
+            tradeTitle = document.getElementById('tradeTitle').value;
+            tradeAuthor = document.getElementById('tradeAuthor').value;
+            tradeGenre = document.getElementById('tradeGenre').value;
+
+            console.log(tradeTitle)
+            let html =`
+            <table class="table table-striped">
+            <div 
+            <tr>
+                <th>Your Book</th>  
+            </tr>     
+            <tr>
+                <th>Title</th>
+                <th>Author</th>
+                <th>Page Count</th>
+                <th>Type</th>
+                <th>Genre</th>
+                <th>Condition</th>   
+            </tr>
+            <tr>
+            <td>${tradeTitle}</td>
+            <td>${tradeAuthor}</td>
+            <td>${tradePageCount}</td>
+            <td>${tradeBookType}</td>
+            <td>${tradeGenre}</td>
+            <td>${tradeBookCondition}</td>
+            </tr>
+           
+            <tr>
+                <th>Book your trading for</th>  
+            </tr>     
+            <tr>
+                <th>Title</th>
+                <th>Author</th>
+                <th>Page Count</th>
+                <th>Type</th>
+                <th>Genre</th>
+                <th>Condition</th>   
+            </tr> 
+            <tr>
+            <td>${data.title}</td>
+            <td>${data.author}</td>
+            <td>${data.pageCount}</td>
+            <td>${data.bookType}</td>
+            <td>${data.genre}</td>
+            <td>${data.condition}</td>
+            </tr>
+
+            </div> `
+            
+
+            let tradeBook = {title: tradeTitle, author: tradeAuthor, pageCount: tradePageCount, genre: tradeGenre, bookType: tradeBookType, price: data.price, condition: tradeBookCondition, deleted: false}
+            console.log(tradeBook);
+            console.log(bookid)
+            console.log(tradeBook)
+            handleBookSell(data.id)
+                console.log(tradeBook)
+                await fetch(booksUrl, {
+                    method:"POST",
+                    body: JSON.stringify(tradeBook),
+                    headers: {
+                        "Content-type": "application/json; charset=UTF-8"
+                    }
+                })
+            html+=`
+            <tr>
+            <button onclick="handleOnLoad()">Back to Home Page</button>
+            </tr>
+            `
+            
+            document.getElementById('tablebody').innerHTML = html
+            
+}
+
+async function inStoreTransaction(){
+    console.log("Start instore transaction")
+    createInvTable();
+    
+}
+
+//TODO ------------------ADMIN PORTAL FUNCTIONS-------------------------//
+
+function loadAdminPortal() 
+{
+    console.log('In loadAdminPortal()');
+
+    
     let html =`
-    <button onclick="loadMainPage()">Home</button>`
-    html +=`</table>`
-    document.getElementById('tablebody').innerHTML = html
-    createBookTradeTable()
+    
+    <button onclick="loadTransactions()">Transaction History</button>
+    
+    <button onclick="loadBookInventory()">Inventory</button>
+` 
+    document.getElementById('tablebody').innerHTML = html;
 }
 
-function createBookTradeTable() {
-    // API link will have to be updated to our actual API link
-    const url = 'API link placeholder'
-    fetch(url).then(function(response){
-        console.log(response)
-        return response.json()
-    }).then(function(json){
-        console.log(json)
-        // display the table
-        displayBookTradeTable(json.results)
-    })
-    .catch(function(error) {
-        console.error('Error fetching data:', error)
-    })
+
+function loadBookInventory() {
+    console.log('In loadBookInventory()');
+    //!ADD A LIST OF ALL INVENTORY ON HAND IN THE BOOKS TABLE
+    //routes back to homepage
+    let html =`<button onclick="loadAdminPortal()">Return to Admin Portal</button>`
+    // html +=`</table>`
+    document.getElementById('tablebody').innerHTML = html;
+   createInvTable();
 }
 
-function displayBookTradeTable(bookData) {
-    // Form for inputing information relevant to the beek being traded.
+
+
+async function createInvTable() {
+    try {
+        const response = await fetch(booksUrl);
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const json = await response.json();
+        console.log(json);
+        
+        // Call the display function with the fetched data
+        displayInvTable(json);
+    } catch (error) {
+        console.error('Error fetching or processing data:', error);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+//displays the final tabl table for inventory display
+function displayInvTable(bookData) {
+
+    console.log('In displayInvTable'); //!error checking
+
+    if (!bookData || !Array.isArray(bookData)) {
+        // Handle the case where bookData is undefined or not an array
+        console.error('Invalid or missing data for book inventory');
+        return;
+    }
+
+
     let html =`
-    <label for="tradetitle">Title of Book You are Trading:</label><br>
-    <input type="text" id="tradetitle" name="tradetitle"><br>
-    <label for="pagecount">Page count of your Book:</label><br>
-    <input type="text" id="pagecount" name="pagecount">
-    <input type="checkbox" id="book" name="book" value="Hardcover">
-    <label for="book"> My Book is Hard Cover</label><br>
     <table class="table table-striped">
-        <tr>
-            <th>Book</th>
-            <th>Page Count</th>
-        </tr>`
+    <div 
+   
+    <tr>
+        <th>ID</th>
+        <th>Title</th>
+        <th>Author</th>
+        <th>Page Count</th>
+        <th>Type</th>
+        <th>Genre</th>
+        <th>Price</th>
+        <th>Condition</th>
+        <th scope="col">In-store purchase</th>
+        
+    </tr>       
+    </div> `
+    var count = 0
     bookData.forEach(function(book){
+        if(book.deleted == false){
+          count++
         html += `
         <tr>
+            <td>${book.id}</td>
             <td>${book.title}</td>
-            <td><button onclick="handleLoadBook('${book.url}')">More Info on ${book.pageCount}</button></td>
-        </tr>`
+            <td>${book.author}</td>
+            <td>${book.pageCount}</td>
+            <td>${book.bookType}</td>
+            <td>${book.genre}</td>
+            <td>${book.price}</td>
+            <td>${book.condition}</td>
+            `
+        if (book.deleted == false){
+            html+=  `
+            <td><button type="button" class="btn active" data-bs-toggle="button" onclick="createInStoreOrder(${book.id})">In-store purchase</button></td>
+            `
+        }  
+        }
+        
+            
+          
     })
-    html +=`</table>`
+    const averagePrice = calculateAveragePrice(bookData);
+    html +=`
+    <div class="alert alert-secondary" role="alert">
+     Total Number of Books in Inventory: ${count}
+  </div>
+   
+  <div class="alert alert-secondary" role="alert">
+    Avg book price: $${averagePrice}
+  </div>
+  <div class="alert alert-secondary" role="alert">
+  <button onclick="loadAdminPortal()">Return to Admin Portal</button>
+    </div>
+    <!-- Sort by Title -->
+    <button onclick="sortInventoryTable('title', 'asc')">Sort by Title (Asc)</button>
+    <button onclick="sortInventoryTable('title', 'desc')">Sort by Title (Desc)</button>
+    <!-- Sort by Price -->
+
+     
+    <!-- Sort by Author -->
+    <button onclick="sortInventoryTable('author', 'asc')">Sort by Author (Asc)</button>
+    <button onclick="sortInventoryTable('author', 'desc')">Sort by Author (Desc)</button>
+
+        
+   <!-- Sort by Page Count -->
+   <button onclick="sortInventoryTable('pageCount', 'asc')">Sort by Page Count (Asc)</button>
+   <button onclick="sortInventoryTable('pageCount', 'desc')">Sort by Page Count (Desc)</button>
+
+   <!-- Sort by Genre -->
+   <button onclick="sortInventoryTable('genre', 'asc')">Sort by Genre (Asc)</button>
+   <button onclick="sortInventoryTable('genre', 'desc')">Sort by Genre (Desc)</button>
+
+    <!-- price -->
+    <button onclick="sortInventoryTable('price', 'asc')">Sort by Price (Asc)</button>
+    <button onclick="sortInventoryTable('price', 'desc')">Sort by Price (Desc)</button>
+
+    <!-- Sort by Condition -->
+    <button onclick="sortInventoryTable('condition', 'asc')">Sort by Condition (Asc)</button>
+    <button onclick="sortInventoryTable('condition', 'desc')">Sort by Condition (Desc)</button>
+
+    <button onclick="loadAdminPortal()">Return to Admin Portal</button>
+    
+
+
+ `;
+     
+
     document.getElementById('tablebody').innerHTML = html
+}
+
+
+
+
+//nEW Inventory SORTING FUCNTIONS
+
+function sortInventoryTable(column, order) {
+    console.log("In sortInventoryTable(column, order)");
+
+    fetch(booksUrl)
+        .then(response => response.json())
+        .then(json => {
+            const sortedBooks = json.sort((a, b) => {
+                let comparison = 0;
+
+                // Compare based on the specified column
+                switch (column) {
+                    case 'price':
+                        comparison = a.price - b.price;
+                        break;
+                    case 'pageCount':
+                        comparison = a.pageCount - b.pageCount;
+                        break;
+                    case 'title':
+                        comparison = a.title.localeCompare(b.title);
+                        break;
+                    case 'author':
+                        comparison = a.author.localeCompare(b.author);
+                        break;
+                    case 'genre':
+                        comparison = a.genre.localeCompare(b.genre);
+                        break;
+                    case 'condition':
+                        comparison = a.condition.localeCompare(b.condition);
+                        break;
+                    default:
+                        // Handle other cases or set a default comparison
+                        break;
+                }
+
+                // Apply the order
+                return order === 'asc' ? comparison : -comparison;
+            });
+
+            displayInvTable(sortedBooks);
+        })
+        .catch(error => {
+            console.error('Error fetching data:', error);
+        });
+}
+
+// more functions
+function calculateAveragePrice(bookData) {
+    if (!bookData || !Array.isArray(bookData) || bookData.length === 0) {
+        // Handle the case where bookData is undefined, not an array, or an empty array
+        console.error('Invalid or missing data for book inventory');
+        return 0;
+    }
+
+    const totalPrices = bookData.reduce((sum, book) => sum + book.price, 0);
+    const averagePrice = totalPrices / bookData.length;
+
+    // Round to two decimal places
+    return Math.round(averagePrice * 100) / 100;
+}
+
+
+
+function sortHomePage(column, order) {
+    console.log("In sortInventoryTable(column, order)");
+
+    fetch(booksUrl)
+        .then(response => response.json())
+        .then(json => {
+            const sortedBooks = json.sort((a, b) => {
+                let comparison = 0;
+
+                // Compare based on the specified column
+                switch (column) {
+                    case 'price':
+                        comparison = a.price - b.price;
+                        break;
+                    case 'pageCount':
+                        comparison = a.pageCount - b.pageCount;
+                        break;
+                    case 'title':
+                        comparison = a.title.localeCompare(b.title);
+                        break;
+                    case 'author':
+                        comparison = a.author.localeCompare(b.author);
+                        break;
+                    case 'genre':
+                        comparison = a.genre.localeCompare(b.genre);
+                        break;
+                    case 'condition':
+                        comparison = a.condition.localeCompare(b.condition);
+                        break;
+                    default:
+                        // Handle other cases or set a default comparison
+                        break;
+                }
+
+                // Apply the order
+                return order === 'asc' ? comparison : -comparison;
+            });
+
+            displayBookTable(sortedBooks);
+        })
+        .catch(error => {
+            console.error('Error fetching data:', error);
+        });
 }
